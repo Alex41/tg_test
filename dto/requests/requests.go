@@ -1,5 +1,1 @@
 package requests
-
-type  struct {
-	
-}
