@@ -14,7 +14,7 @@ services:
       DB_NAME: postgres
       DB_USER: postgres
       DB_PASSWORD: some_password
-      BOT_TOKEN: 6190579936:AAHTJ0FRlCFcvhgD8xZoDHfKyNPM32hzTTM
+      BOT_TOKEN: YOUR_TOKEN
 
   db:
     image: postgres:11.14-alpine3.15
