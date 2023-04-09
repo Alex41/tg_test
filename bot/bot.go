@@ -51,7 +51,6 @@ func Send(c tg.Chattable) (tg.Message, error) {
 	return bot.Send(c)
 }
 
-func GetFileUrl(f string) (string, error) {
-	file, err := bot.GetFile(tg.FileConfig{FileID: f})
-	return file.FilePath, err // file can't be nil
+func GetFileDirectURL(f string) (string, error) {
+	return bot.GetFileDirectURL(f)
 }

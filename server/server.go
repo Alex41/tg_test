@@ -1,12 +1,14 @@
 package server
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	tg "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	fl "github.com/swaggo/files"
+	gs "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/swag"
 	"io"
+	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"tg_test/base"
@@ -14,18 +16,30 @@ import (
 	"tg_test/dto/responses"
 )
 
+func init() {
+	file, _ := os.ReadFile("./docs/swagger.json")
+	swag.Register("swagger", &swag.Spec{SwaggerTemplate: string(file)})
+}
+
 func Serve() {
 	router := gin.Default()
 
-	router.GET("/messages", getMessage)
+	router.GET("/messages", getMessages)
 	router.POST("/message", sendMessage)
 
 	router.GET("/files", getFile)
 
+	router.GET("/swagger/*any", gs.WrapHandler(fl.Handler))
+
 	panic(router.Run(":80"))
 }
 
-func getMessage(c *gin.Context) {
+// @Summary GetMessages
+// @Produce json
+// @Tags Message
+// @Success 200 {array} responses.Message
+// @Router /messages [get]
+func getMessages(c *gin.Context) {
 	messages, err := base.GetMessages()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
@@ -44,13 +58,7 @@ func getMessage(c *gin.Context) {
 		}
 
 		if msg.FileID != nil {
-			fileUrl, err := bot.GetFileUrl(*msg.FileID)
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, err)
-				return
-			}
-			fileUrl = "/files?file=" + url.PathEscape(fileUrl)
-
+			fileUrl := "/files?file=" + *msg.FileID
 			m.File = &fileUrl
 		}
 
@@ -60,6 +68,14 @@ func getMessage(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// @Summary SendMessages
+// @Produce json
+// @Success 204
+// @Tags Message
+// @Param chat_id formData int  true  "ChatID"
+// @Param text    formData int  false "Text"
+// @Param file    formData file false "File"
+// @Router /message [post]
 func sendMessage(c *gin.Context) {
 	var (
 		chatID, err1 = strconv.Atoi(c.PostForm("chat_id"))
@@ -85,16 +101,16 @@ func sendMessage(c *gin.Context) {
 
 	} else {
 		// file exist
-		fl, err := file.Open()
+		mp, err := file.Open()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err)
 			return
 		}
 
 		//goland:noinspection GoUnhandledErrorResult
-		defer fl.Close()
+		defer mp.Close()
 
-		doc := tg.NewDocument(int64(chatID), tg.FileReader{Name: file.Filename, Reader: fl})
+		doc := tg.NewDocument(int64(chatID), tg.FileReader{Name: file.Filename, Reader: mp})
 		doc.Caption = text
 
 		tgMsg = doc
@@ -128,9 +144,15 @@ func sendMessage(c *gin.Context) {
 }
 
 func getFile(c *gin.Context) {
-	link := fmt.Sprintf(tg.FileEndpoint, os.Getenv("BOT_TOKEN"), c.Query("file"))
-	resp, err := http.Get(link)
+	fileUrl, err := bot.GetFileDirectURL(c.Query("file"))
 	if err != nil {
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	resp, err := http.Get(fileUrl)
+	if err != nil {
+		log.Println(err)
 		c.JSON(http.StatusInternalServerError, "cannot get image") // can be token in the error
 		return
 	}

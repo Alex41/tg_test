@@ -1,16 +1,21 @@
-FROM golang:1.19-alpine3.15 AS builder
+FROM golang:1.19-buster AS builder
 WORKDIR /app
+
+COPY Makefile .
+COPY go.mod .
+COPY go.sum .
+
+RUN make install_swagger
 
 COPY . .
 
-RUN go build -ldflags="-s -w" -o ./bin/app main/main.go
+RUN make go_download go_tidy swagger build
 
-FROM alpine:3.15
+FROM buildpack-deps:18.04-scm
 WORKDIR /root
 
 COPY --from=builder /app/bin .
+COPY --from=builder /app/docs ./docs
 COPY ./migrations ./migrations
-
-RUN chmod +x ./app
 
 ENTRYPOINT ["./app"]
