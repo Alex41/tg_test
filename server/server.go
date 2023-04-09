@@ -144,6 +144,12 @@ func sendMessage(c *gin.Context) {
 }
 
 func getFile(c *gin.Context) {
+
+	/*
+		I use getFile for convert telegram's file as string to url and pass it user.
+		I can't store direct link because link contains token.
+	*/
+
 	fileUrl, err := bot.GetFileDirectURL(c.Query("file"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)

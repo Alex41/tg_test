@@ -13,6 +13,8 @@ type Message struct {
 	CreatedAt time.Time
 }
 
+// I used enum for store creator as string with low memory loss on save
+
 type MessageCreator string
 
 const (

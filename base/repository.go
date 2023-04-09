@@ -26,6 +26,7 @@ func init() {
 		panic(err)
 	}
 
+	// I used goose migrations because gorm can't migrate enums.
 	native, _ := db.DB()
 	err = goose.Up(native, "./migrations")
 	if err != nil {
