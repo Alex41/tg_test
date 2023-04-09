@@ -72,9 +72,9 @@ func getMessages(c *gin.Context) {
 // @Produce json
 // @Success 204
 // @Tags Message
-// @Param chat_id formData int  true  "ChatID"
-// @Param text    formData int  false "Text"
-// @Param file    formData file false "File"
+// @Param chat_id formData int    true  "ChatID"
+// @Param text    formData string false "Text"
+// @Param file    formData file   false "File"
 // @Router /message [post]
 func sendMessage(c *gin.Context) {
 	var (
