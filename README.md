@@ -16,7 +16,7 @@ For ease of API testing, I have added swagger where you can try and see all API 
 Sequence of actions:
 
 1. Paste your token in the Dockerfile (in the BOT_TOKEN parameter).
-2. Run the docker compose up --build command
+2. Run the `docker compose up --build` command
 3. After successful launch, go to swagger: http://localhost/swagger/index.html
 4. Use necessary methods 🙂
 
